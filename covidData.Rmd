@@ -1,0 +1,46 @@
+---
+title: "Visualisation en direct des données du covid en France"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Nombre prévu et reçu de doses
+```{r echo=FALSE}
+library(ggplot2)
+library(scales)
+data=read.csv("https://www.data.gouv.fr/fr/datasets/r/9c60af86-b974-4dba-bf34-f52686c7ada9",header=T,sep=';')
+data=subset(data,select=-c(nb_ucd))
+data$date_fin_semaine=as.Date(data$date_fin_semaine,format = "%d/%m/%Y")
+data=data[order(data$date_fin_semaine),]
+data=merge(data,cbind(aggregate(nb_doses ~ date_fin_semaine, data, sum),type_de_vaccin="Total"),all=T)
+data$type_de_vaccin=as.factor(data$type_de_vaccin)
+
+data$cum_sum_doses=ave(data$nb_doses,data$type_de_vaccin,FUN = cumsum)
+
+
+
+
+ggplot(data[data$type_de_vaccin!='Total',],aes(date_fin_semaine,nb_doses,group=type_de_vaccin,color=type_de_vaccin))+
+  geom_col(aes(fill=type_de_vaccin))+
+  scale_x_date(labels = date_format("%d/%m"),breaks =data$date_fin_semaine)+
+  labs(y="Nombre de doses reçues ou prévues",x='')+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+### Nombre cumulé prévu et reçu de doses
+
+```{r echo=FALSE}
+  
+ggplot(data,aes(date_fin_semaine,cum_sum_doses,group=type_de_vaccin,color=type_de_vaccin))+
+  geom_line()+
+  scale_x_date(labels = date_format("%d/%m"), breaks = data$date_fin_semaine)+
+  scale_y_continuous(labels=comma)+
+  labs(y="Nombre cumulé de doses reçues ou prévues",x='')+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
