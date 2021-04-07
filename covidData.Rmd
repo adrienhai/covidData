@@ -1,6 +1,6 @@
 ---
 title: "Visualisation en direct des données du covid en France"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
